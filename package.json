@@ -4,7 +4,7 @@
   "description": "Vue table plugin with nesting and some features",
   "main": "src/table.vue",
   "dependencies": {
-
+    "font-awesome": "^4.7.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

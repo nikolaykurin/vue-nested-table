@@ -3,16 +3,23 @@
     <table class="vnt-table">
       <thead>
         <tr>
-          <th v-for="(column, key) in columns" :key="`header-${key}`">{{ column.label }}</th>
+          <th
+            v-for="(column, columnKey) in columns"
+            @click="column.sortable ? onSort(column.field) : stub()"
+            :key="`column-header-${key}`" :class="`${key === 0 ? 'first' : ''}`">
+            <i v-if="columnKey === 0" @click.stop="toggleShowAll" :class="`show-all fa fa-${ showAll ? 'minus' : 'plus' }`" id="show-all"/>
+            {{ column.label }}
+            <i v-if="column.field === sort.field" :class="`fa fa-long-arrow-${ sort.order === 'asc' ? 'down' : 'up' }`" class="sort" aria-hidden="true"/>
         </tr>
       </thead>
       <tbody
         v-for="(row, rowKey) in rows"
         is="group"
+        :index="rowKey"
         :colspan="colspan"
         :row="row"
-        :children="children"
-        @toggle="toggleMinimize"
+        :childrenField="childrenField"
+        :childrenColumns="childrenColumns"
         @on-row-edit="onRowEdit"
         @on-row-delete="onRowDelete"
         @on-children-add="onChildrenAdd"
@@ -45,7 +52,7 @@
           return [];
         }
       },
-      children: {
+      childrenField: {
         type: String,
         default() {
           return null;
@@ -60,7 +67,11 @@
     },
     data() {
       return {
-        showAll: false
+        showAll: false,
+        sort: {
+          field: undefined,
+          order: undefined
+        }
       }
     },
     computed: {
@@ -69,7 +80,12 @@
       }
     },
     created() {
-
+      //
+    },
+    mounted() {
+      this.$nextTick.then(() => {
+        //
+      })
     },
     methods: {
       toggleShowAll() {
@@ -77,6 +93,51 @@
       },
       toggleMinimize() {
 
+      },
+      onSort(field) {
+        console.log('sort by: ', field);
+        let order = null;
+        if (field !== this.sort.field) {
+          order = 'asc';
+        } else {
+          order = this.getSortOrder();
+        }
+
+        this.sort.field = field;
+        this.sort.order = order;
+
+        this.rows = this.rows.sort((item1, item2) => {
+          return this.compareItems(item1, item2, order);
+        })
+      },
+      getSortOrder() {
+        switch (this.sort.order) {
+          case 'asc':
+            return 'desc';
+          case 'desc':
+            return 'asc';
+          default:
+            return 'asc';
+        }
+      },
+      compareItems(item1, item2, order) {
+        if (item1[field] === item2[field]) {
+          return 0;
+        }
+
+        if (!item1[field] && item2[field]) {
+          return order === 'asc' ? 1 : -1;
+        }
+
+        if (!item2[field] && item1[field]) {
+          return order === 'asc' ? -1 : 1;
+        }
+
+        // TODO: this compares only strings, not numbers
+        return order === 'asc' ? (item2[field].localeCompare(item1[field]) > 0 ? 1 : -1) : (item1[field].localeCompare(item2[field]) > 0 ? 1 : -1);
+      },
+      stub() {
+        return false;
       },
       onRowCreate() {
 
@@ -112,7 +173,11 @@
   #vnt {
     .vnt-table {
       thead {
+        tr {
+          th {
 
+          }
+        }
       }
       tbody {
 
